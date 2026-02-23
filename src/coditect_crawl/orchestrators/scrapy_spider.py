@@ -8,6 +8,7 @@ ExtractionResult.
 from __future__ import annotations
 
 import asyncio
+import logging
 import multiprocessing
 import queue
 from urllib.parse import urlparse
@@ -173,6 +174,10 @@ def _dict_to_extraction_result(d: dict) -> ExtractionResult:
 # Subprocess target
 # ---------------------------------------------------------------------------
 
+# Sentinel dict put on queue after crawl finishes with metadata
+_CRAWL_METADATA_SENTINEL = "__crawl_metadata__"
+
+
 def _crawl_subprocess(
     url: str,
     max_depth: int,
@@ -192,21 +197,35 @@ def _crawl_subprocess(
     settings = get_scrapy_settings(spa=spa, max_pages=max_pages)
     process = CrawlerProcess(settings=settings)
 
+    got_429 = False
+
     def _on_item_scraped(item, response, spider):
         er = item.get("extraction_result")
         if er is not None:
             result_queue.put(_extraction_result_to_dict(er))
 
+    def _on_response_received(response, request, spider):
+        nonlocal got_429
+        if response.status == 429:
+            got_429 = True
+
     crawler = process.create_crawler(CoditectSpider)
     crawler.signals.connect(_on_item_scraped, signal=signals.item_scraped)
+    crawler.signals.connect(_on_response_received, signal=signals.response_received)
 
     process.crawl(crawler, start_url=url, max_depth=max_depth, spa=spa)
     process.start()  # Blocks until crawl finishes
+
+    # Send metadata sentinel so parent can detect 429s
+    result_queue.put({_CRAWL_METADATA_SENTINEL: True, "got_429": got_429})
 
 
 # ---------------------------------------------------------------------------
 # Public async API
 # ---------------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
+
 
 async def run_deep_crawl(
     url: str,
@@ -214,6 +233,7 @@ async def run_deep_crawl(
     max_depth: int = 2,
     max_pages: int = 100,
     spa: bool = False,
+    ignore_cooldown: bool = False,
 ) -> list[ExtractionResult]:
     """Run a Scrapy deep crawl in a subprocess and return results.
 
@@ -221,15 +241,36 @@ async def run_deep_crawl(
     Twisted reactor conflicts with the caller's asyncio event loop.
     Results transfer back via multiprocessing.Queue.
 
+    Rate limiting (3 layers):
+      1. Domain cooldown — skips crawl if domain was recently crawled
+      2. AutoThrottle — dynamically adjusts delay based on server latency
+      3. BackoffRetryMiddleware — exponential backoff + jitter on 429
+
     Args:
         url: Starting URL for the crawl.
         max_depth: Maximum link-following depth.
         max_pages: Maximum number of pages to crawl.
         spa: Enable Playwright rendering for JS-heavy pages.
+        ignore_cooldown: Skip domain cooldown check.
 
     Returns:
         List of ExtractionResult objects, one per crawled page.
     """
+    from coditect_crawl.orchestrators.domain_cooldown import DomainCooldown
+
+    # Layer 1: Domain cooldown check
+    cooldown = DomainCooldown()
+    if not ignore_cooldown:
+        remaining = cooldown.check(url)
+        if remaining > 0:
+            logger.warning(
+                "Domain %s on cooldown — %d seconds remaining. "
+                "Use ignore_cooldown=True to override.",
+                urlparse(url).netloc,
+                int(remaining),
+            )
+            return []
+
     if spa:
         try:
             import scrapy_playwright  # noqa: F401
@@ -259,11 +300,24 @@ async def run_deep_crawl(
 
     # Drain results from the queue
     results: list[ExtractionResult] = []
+    got_429 = False
     while True:
         try:
             result_dict = result_queue.get_nowait()
+            if result_dict.get(_CRAWL_METADATA_SENTINEL):
+                got_429 = result_dict.get("got_429", False)
+                continue
             results.append(_dict_to_extraction_result(result_dict))
         except queue.Empty:
             break
+
+    # Record crawl for domain cooldown tracking
+    cooldown.record(url, pages=len(results), got_429=got_429)
+    if got_429:
+        logger.warning(
+            "Domain %s returned 429 during crawl — "
+            "cooldown set to 15 minutes.",
+            urlparse(url).netloc,
+        )
 
     return results
