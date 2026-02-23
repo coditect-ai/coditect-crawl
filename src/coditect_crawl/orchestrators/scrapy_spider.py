@@ -60,12 +60,21 @@ class CoditectSpider(scrapy.Spider):
         self.allowed_domain = parsed.netloc
         self._link_extractor = LinkExtractor(allow_domains=[self.allowed_domain])
 
+    def _playwright_meta(self) -> dict:
+        """Build Playwright meta dict for SPA requests."""
+        return {
+            "playwright": True,
+            "playwright_include_page": False,
+            "playwright_page_goto_kwargs": {
+                "wait_until": "domcontentloaded",
+            },
+        }
+
     async def start(self):
         for url in self.start_urls:
             meta: dict = {"depth": 0}
             if self.spa:
-                meta["playwright"] = True
-                meta["playwright_include_page"] = False
+                meta.update(self._playwright_meta())
             yield scrapy.Request(url, callback=self.parse, meta=meta)
 
     def parse(self, response):
@@ -83,8 +92,7 @@ class CoditectSpider(scrapy.Spider):
             for link in self._link_extractor.extract_links(response):
                 meta: dict = {"depth": current_depth + 1}
                 if self.spa:
-                    meta["playwright"] = True
-                    meta["playwright_include_page"] = False
+                    meta.update(self._playwright_meta())
                 yield scrapy.Request(link.url, callback=self.parse, meta=meta)
 
 

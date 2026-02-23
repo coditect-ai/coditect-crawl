@@ -52,6 +52,12 @@ def get_scrapy_settings(*, spa: bool = False, max_pages: int = 100) -> dict:
     }
 
     if spa:
+        # Playwright is heavier — reduce concurrency, increase timeouts
+        settings["CONCURRENT_REQUESTS"] = 2
+        settings["CONCURRENT_REQUESTS_PER_DOMAIN"] = 1
+        settings["DOWNLOAD_DELAY"] = 2.0
+        settings["DOWNLOAD_TIMEOUT"] = 60
+        settings["PLAYWRIGHT_MAX_PAGES_PER_CONTEXT"] = 2
         settings.update({
             "DOWNLOAD_HANDLERS": {
                 "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -59,7 +65,11 @@ def get_scrapy_settings(*, spa: bool = False, max_pages: int = 100) -> dict:
             },
             "PLAYWRIGHT_BROWSER_TYPE": "chromium",
             "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": True},
-            "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 30000,
+            "PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT": 45000,
+            # Use domcontentloaded instead of load — faster, sufficient for
+            # extracting links and content from SSR/SPA pages without waiting
+            # for all images, fonts, analytics scripts to finish loading.
+            "PLAYWRIGHT_PROCESS_REQUEST_HEADERS": None,
         })
 
     return settings
