@@ -29,6 +29,7 @@ classifiers = [
 # Phase 1: Core extraction (lightweight)
 dependencies = [
     "trafilatura>=2.0.0",
+    "lxml_html_clean>=0.4.0",
 ]
 
 [project.optional-dependencies]
