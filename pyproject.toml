@@ -1,0 +1,76 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "coditect-crawl"
+version = "0.1.0"
+description = "Intelligent web content extraction pipeline — Trafilatura + Crawl4AI + Scrapy"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "AZ1.AI INC", email = "engineering@az1.ai" },
+]
+keywords = ["web-crawler", "extraction", "markdown", "llm", "coditect"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+
+# Phase 1: Core extraction (lightweight)
+dependencies = [
+    "trafilatura>=2.0.0",
+]
+
+[project.optional-dependencies]
+# Phase 2: SPA rendering
+spa = [
+    "crawl4ai>=0.8.0",
+]
+# Phase 3: Deep crawl orchestration
+deep = [
+    "scrapy>=2.14.0",
+    "scrapy-playwright>=0.0.44",
+]
+# All phases
+all = [
+    "coditect-crawl[spa,deep]",
+]
+# Development
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/coditect-ai/coditect-crawl"
+Repository = "https://github.com/coditect-ai/coditect-crawl"
+Issues = "https://github.com/coditect-ai/coditect-crawl/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coditect_crawl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "spa: tests requiring Playwright/Crawl4AI (Phase 2)",
+    "deep: tests requiring Scrapy (Phase 3)",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
