@@ -32,9 +32,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Phase 2: SPA rendering
+# Phase 2: SPA rendering (Crawl4AI primary, Playwright fallback)
 spa = [
     "crawl4ai>=0.8.0",
+    "playwright>=1.40.0",
+]
+# Phase 2 lightweight: Playwright-only fallback (no Crawl4AI)
+spa-lite = [
+    "playwright>=1.40.0",
 ]
 # Phase 3: Deep crawl orchestration
 deep = [

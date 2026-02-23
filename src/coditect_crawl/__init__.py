@@ -37,17 +37,29 @@ def extract(url: str, *, html: str | None = None, spa: bool = False) -> Extracti
     result = extract_with_trafilatura(url, html=html)
 
     if spa and result.is_likely_spa():
+        # Try Crawl4AI first (best SPA markdown quality)
         try:
             from coditect_crawl.renderers.crawl4ai import render_spa
 
-            result = render_spa(url)
+            spa_result = render_spa(url)
+            if spa_result.markdown and len(spa_result.markdown.split()) > 20:
+                return spa_result
         except ImportError:
-            try:
-                from coditect_crawl.renderers.playwright import render_spa_playwright
+            pass
+        except Exception:
+            pass
 
-                result = render_spa_playwright(url)
-            except ImportError:
-                pass  # Return Trafilatura result as-is
+        # Fallback: Playwright direct + Trafilatura (ADR-215 bus factor mitigation)
+        try:
+            from coditect_crawl.renderers.playwright import render_spa_playwright
+
+            pw_result = render_spa_playwright(url)
+            if pw_result.markdown and len(pw_result.markdown.split()) > 20:
+                return pw_result
+        except ImportError:
+            pass
+        except Exception:
+            pass
 
     return result
 

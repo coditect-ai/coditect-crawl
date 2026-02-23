@@ -100,12 +100,12 @@ Major enhancement to the CODITECT `/crawl` command. Replaces the current stdlib-
 | Task | Description | Status |
 |------|-------------|--------|
 | H.17.7.2.1 | Implement `renderers/detector.py` — SPA detection heuristic | [x] (in models.py) |
-| H.17.7.2.2 | Implement `renderers/crawl4ai.py` — AsyncWebCrawler wrapper | [ ] |
-| H.17.7.2.3 | Implement `renderers/playwright.py` — direct Playwright fallback | [ ] |
+| H.17.7.2.2 | Implement `renderers/crawl4ai.py` — AsyncWebCrawler wrapper | [x] |
+| H.17.7.2.3 | Implement `renderers/playwright.py` — direct Playwright fallback | [x] |
 | H.17.7.2.4 | Integrate SPA cascade in `__init__.py` — Trafilatura → detect → Crawl4AI → Playwright | [x] |
 | H.17.7.2.5 | Write SPA detection unit tests with fixture HTML | [ ] |
 | H.17.7.2.6 | Integration test: extract az1.ai (React SPA) | [ ] |
-| H.17.7.2.7 | Update dashboard to show rendering method | [ ] |
+| H.17.7.2.7 | Update dashboard to show rendering method | [x] |
 
 ### Phase 3: Scrapy Deep Crawl (Priority: P2)
 
