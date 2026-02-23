@@ -115,11 +115,11 @@ Major enhancement to the CODITECT `/crawl` command. Replaces the current stdlib-
 
 | Task | Description | Status |
 |------|-------------|--------|
-| H.17.7.3.1 | Implement `orchestrators/scrapy_spider.py` — spider + Trafilatura pipeline | [ ] |
-| H.17.7.3.2 | Implement `orchestrators/settings.py` — Scrapy config with scrapy-playwright | [ ] |
+| H.17.7.3.1 | Implement `orchestrators/scrapy_spider.py` — spider + Trafilatura pipeline | [x] |
+| H.17.7.3.2 | Implement `orchestrators/settings.py` — Scrapy config with scrapy-playwright | [x] |
 | H.17.7.3.3 | Implement `deep_crawl()` async API in `__init__.py` | [x] (stub) |
 | H.17.7.3.4 | Feed output into session state and categorization pipeline | [ ] |
-| H.17.7.3.5 | Integration test: deep crawl a documentation site | [ ] |
+| H.17.7.3.5 | Integration test: deep crawl a documentation site | [x] |
 | H.17.7.3.6 | Update `/crawl --deep` command flow | [ ] |
 
 ### Phase 4: Integration & Documentation (Priority: P1)
