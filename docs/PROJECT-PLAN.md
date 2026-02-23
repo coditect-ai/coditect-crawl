@@ -82,14 +82,14 @@ Major enhancement to the CODITECT `/crawl` command. Replaces the current stdlib-
 | H.17.7.1.1 | Create `pyproject.toml` with Trafilatura dependency | [x] |
 | H.17.7.1.2 | Create package structure (`src/coditect_crawl/`) | [x] |
 | H.17.7.1.3 | Implement `extractors/trafilatura.py` — wrap `trafilatura.extract()` with markdown output | [x] |
-| H.17.7.1.4 | Implement `extractors/fallback.py` — port current regex extraction as fallback | [ ] |
+| H.17.7.1.4 | Implement `extractors/fallback.py` — port current regex extraction as fallback | [x] |
 | H.17.7.1.5 | Implement `utils/models.py` — ExtractionResult, PageMetadata, Link dataclasses | [x] |
 | H.17.7.1.6 | Implement `utils/links.py` — link extraction and categorization (port from categorize_links.py) | [ ] |
 | H.17.7.1.7 | Implement public API in `__init__.py` — `extract()` function | [x] |
 | H.17.7.1.8 | Write unit tests for Trafilatura extraction | [ ] |
 | H.17.7.1.9 | Create HTML fixtures for deterministic testing | [ ] |
 | H.17.7.1.10 | Extraction quality benchmark — 10 URLs comparing old vs new | [ ] |
-| H.17.7.1.11 | Wire into `/crawl` skill — update `process_page.py` to use `coditect_crawl.extract()` | [ ] |
+| H.17.7.1.11 | Wire into `/crawl` skill — update `process_page.py` to use `coditect_crawl.extract()` | [x] |
 
 ### Phase 2: Crawl4AI SPA Rendering (Priority: P1)
 
